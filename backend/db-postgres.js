@@ -4,9 +4,21 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { Pool, types } = require("pg");
 
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
-  throw new Error("DATABASE_URL is required when DB_CLIENT=postgres.");
+function buildConnectionConfig(env = process.env) {
+  const config = {
+    host: env.PGHOST || env.DB_HOST,
+    port: Number(env.PGPORT || env.DB_PORT) || 5432,
+    user: env.PGUSER || env.DB_USER,
+    password: env.PGPASSWORD ?? env.DB_PASSWORD,
+    database: env.PGDATABASE || env.DB_NAME,
+  };
+  const missing = ["host", "user", "database"].filter((key) => !config[key]);
+  if (missing.length > 0) {
+    throw new Error(
+      `Missing PostgreSQL configuration: ${missing.map((key) => `PG${key.toUpperCase()}`).join(", ")}.`
+    );
+  }
+  return config;
 }
 
 function buildSslOptions({ enabled, caCertificate } = {}) {
@@ -32,7 +44,7 @@ const ssl = buildSslOptions({ enabled: sslEnabled, caCertificate: sslCaCertifica
 types.setTypeParser(20, (value) => Number(value));
 
 const pool = new Pool({
-  connectionString,
+  ...buildConnectionConfig(),
   ssl,
   max: Number(process.env.DB_POOL_SIZE) || 10,
   connectionTimeoutMillis: Number(process.env.DB_CONNECTION_TIMEOUT_MS) || 10_000,
@@ -265,4 +277,12 @@ async function verifyConnection({ exitOnFailure = false } = {}) {
   }
 }
 
-module.exports = { promisePool, verifyConnection, translateSql, prepareQuery, wrapClient, buildSslOptions };
+module.exports = {
+  promisePool,
+  verifyConnection,
+  translateSql,
+  prepareQuery,
+  wrapClient,
+  buildSslOptions,
+  buildConnectionConfig,
+};

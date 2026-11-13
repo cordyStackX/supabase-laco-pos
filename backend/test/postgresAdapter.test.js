@@ -3,8 +3,47 @@
 const test = require("node:test");
 const assert = require("node:assert");
 
-process.env.DATABASE_URL = process.env.DATABASE_URL || "postgresql://user:password@localhost:5432/test";
-const { translateSql, prepareQuery, wrapClient, buildSslOptions } = require("../db-postgres");
+process.env.PGHOST = "localhost";
+process.env.PGPORT = "5432";
+process.env.PGUSER = "user";
+process.env.PGPASSWORD = "password";
+process.env.PGDATABASE = "test";
+const {
+  translateSql,
+  prepareQuery,
+  wrapClient,
+  buildSslOptions,
+  buildConnectionConfig,
+} = require("../db-postgres");
+
+test("builds PostgreSQL connection options without a connection URL", () => {
+  assert.deepStrictEqual(buildConnectionConfig({
+    PGHOST: "postgres.example",
+    PGPORT: "5433",
+    PGUSER: "app",
+    PGPASSWORD: "secret",
+    PGDATABASE: "bookstore",
+  }), {
+    host: "postgres.example",
+    port: 5433,
+    user: "app",
+    password: "secret",
+    database: "bookstore",
+  });
+
+  assert.deepStrictEqual(buildConnectionConfig({
+    DB_HOST: "localhost",
+    DB_USER: "legacy-app",
+    DB_PASSWORD: "legacy-password",
+    DB_NAME: "legacy-db",
+  }), {
+    host: "localhost",
+    port: 5432,
+    user: "legacy-app",
+    password: "legacy-password",
+    database: "legacy-db",
+  });
+});
 
 test("translates the MySQL SQL patterns used by existing routes", () => {
   assert.strictEqual(

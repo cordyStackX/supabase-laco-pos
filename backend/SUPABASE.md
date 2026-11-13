@@ -23,10 +23,14 @@ private and are only served through the authenticated backend route.
    (`sb_secret_...`). Do not use the publishable key for backend uploads.
 6. Configure the server-side variables in your hosting provider's private
    environment-variable settings. Do not put the service-role key or database
-   connection string in either frontend or commit them:
+   credentials in either frontend or commit them:
 
    ```text
-   DATABASE_URL=postgresql://...your Supabase database connection string...
+   PGHOST=<Supabase database host>
+   PGPORT=5432
+   PGDATABASE=postgres
+   PGUSER=postgres
+   PGPASSWORD=<Supabase database password>
    DB_SSL=true
    DB_SSL_CA_CERT=<full PEM certificate, when required by the host>
    SUPABASE_URL=https://your-project.supabase.co
@@ -57,10 +61,11 @@ private and are only served through the authenticated backend route.
 1. Push the backend and `render.yaml` to the GitHub repository connected to
    Render. In Render, choose **New → Blueprint** and select that repository.
 2. Render reads `render.yaml` and creates the `pos-bookstore-api` web service.
-   Enter the requested private values for `DATABASE_URL`, `SUPABASE_URL`,
-   `SUPABASE_SECRET_KEY`, `JWT_SECRET`, `CORS_ORIGINS`, and, if needed,
-   `DB_SSL_CA_CERT`. Set `CORS_ORIGINS` to the exact deployed POS and storefront
-   origins, comma-separated, with no trailing slash.
+   Enter the requested private values for `PGHOST`, `PGPORT`, `PGDATABASE`,
+   `PGUSER`, `PGPASSWORD`, `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `JWT_SECRET`,
+   `CORS_ORIGINS`, and, if needed, `DB_SSL_CA_CERT`. Set `CORS_ORIGINS` to the
+   exact deployed POS and storefront origins, comma-separated, with no trailing
+   slash.
 3. Keep the MySQL source credentials available only to the one-time transfer
    environment. They are not needed by the deployed Render service.
 4. After deployment, open the Render service URL and confirm
@@ -115,13 +120,15 @@ Remove-Item Env:DB_CLIENT
 This applies the new schema under `migrations/postgres/` and records it in
 `schema_migrations`. It does not run the MySQL-specific migrations. Run the
 command in a one-off shell/job in the host or a trusted migration environment
-with the target `DATABASE_URL` and `DB_CLIENT=postgres` configured.
+with the target `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`, and
+`DB_CLIENT=postgres` configured.
 
 ## Copy current data
 
 Keep both sets of values configured: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`,
-and `DB_PASSWORD` for the MySQL source, and `DATABASE_URL` plus `DB_SSL` for
-the Supabase destination. Run this in a trusted one-off environment:
+and `DB_PASSWORD` for the MySQL source, and `PGHOST`, `PGPORT`, `PGDATABASE`,
+`PGUSER`, `PGPASSWORD`, plus `DB_SSL` for the Supabase destination. Run this in
+a trusted one-off environment:
 
 ```powershell
 $env:DB_CLIENT = "postgres"
@@ -146,7 +153,7 @@ before retrying.
 The original `backend/uploads` folder is not included in Git, so it must be
 available to the one-off transfer process. Run the upload transfer from a
 trusted environment that has that folder, the Supabase Storage variables above,
-and a `DATABASE_URL` pointing to the already-migrated Postgres database:
+and the `PG*` variables pointing to the already-migrated Postgres database:
 
 ```powershell
 $env:DB_CLIENT = "postgres"
@@ -166,11 +173,11 @@ option does not skip missing receipts or other upload errors.
 ## Switch the backend and verify
 
 Set `DB_CLIENT=postgres` in the deployed backend's private environment, keep
-`DATABASE_URL`, `DB_SSL`, and the Supabase Storage variables configured, then
-deploy/restart. Run `npm test` in CI and verify staff login, customer login,
-product/category reads, image upload and display, authenticated receipt
-viewing, POS checkout and refunds, inventory updates, online order/payment
-handling, and reports before reopening writes.
+the `PG*` database variables, `DB_SSL`, and the Supabase Storage variables
+configured, then deploy/restart. Run `npm test` in CI and verify staff login,
+customer login, product/category reads, image upload and display, authenticated
+receipt viewing, POS checkout and refunds, inventory updates, online
+order/payment handling, and reports before reopening writes.
 
 Keep the MySQL backup until the new deployment has been checked and accepted.
 Rolling back after new writes have reached Postgres requires a separate reverse

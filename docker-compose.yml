@@ -595,13 +595,16 @@ services:
     environment:
       PORT: 5300
       DB_CLIENT: postgres
-      DB_SSL: "true"
-      DB_SSL_CA_PATH: /run/secrets/supabase-root-ca.crt
+      PGHOST: ${POSTGRES_HOST}
+      PGPORT: ${POSTGRES_PORT}
+      PGDATABASE: ${POSTGRES_DB}
+      PGUSER: postgres
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      DB_SSL: "false"
       CORS_ORIGINS: https://laco-pos.com,http://laco-pos.com,http://localhost:5373,http://127.0.0.1:5373
     ports:
       - "127.0.0.1:5300:5300"
     volumes:
-      - ./backend/prod-ca-2021.crt:/run/secrets/supabase-root-ca.crt:ro
       - lacobookstore-pos-uploads:/data/uploads
 
   frontend:
