@@ -1,0 +1,10 @@
+/node_modules
+.env
+.env.*
+
+# Runtime uploads.
+#
+# Payment receipts are customer data and must never be committed. Product images
+# are also ignored: keep them in the deployment volume (or restore them once from
+# history) rather than shipping them in Git.
+/uploads/

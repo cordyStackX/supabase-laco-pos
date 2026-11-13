@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+body {
+  font-family: sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  background-color: #f0f2f5;
+}
+
+.container {
+  text-align: center;
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+button {
+  cursor: pointer;
+}
+
+/* Custom dropdown option hover color */
+select option:hover,
+select option:focus,
+select option:checked,
+select option[selected] {
+  background-color: #2563eb !important;
+  color: white !important;
+}
+
+/* Sidebar slide-in animation */
+@keyframes slideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+.animate-slideIn {
+  animation: slideIn 0.25s ease-out;
+}
