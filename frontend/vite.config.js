@@ -22,7 +22,7 @@ import tailwindcss from '@tailwindcss/vite'
   server: {
     host: '0.0.0.0',
     port: 5373,
-    allowedHosts: ['lacobookstore-pos.com'],
+    allowedHosts: ['lacobookstore-pos.com', 'lacobookstore-pos.local'],
     proxy: {
       '/api': { target: apiTarget, changeOrigin: true },
       '/uploads': { target: apiTarget, changeOrigin: true },
